@@ -1,26 +1,21 @@
-import type { Metadata } from 'next'
+import type { Metadata } from "next";
+import "./globals.css";
 
-// Generic metadata layout for the (user) group, can be extended for PWA dynamically later.
 export const metadata: Metadata = {
-  title: 'ዘመን የመኪና እጣ | Zemen Car Lottery',
-  description: 'Ethiopia\'s premier auto lottery experience. Win your dream car today!',
-}
+  title: "ዘመን የመኪና እጣ | Zemen Car Lottery",
+  description: "Ethiopia's premier auto lottery experience. Win your dream car today!",
+};
 
-// User-specific layout rules 
-export default function UserLayout({
+export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col font-sans">
-      {/* 
-        This is where a top-level PWA banner or dynamic headers would go
-        User-only wrappers and contexts are initialized here.
-      */}
-      <div className="flex-1 w-full flex flex-col">
-        {children}
-      </div>
-    </div>
-  )
+    <html lang="en">
+      <body className="min-h-screen bg-slate-950 flex flex-col font-sans">
+        <div className="flex-1 w-full flex flex-col">{children}</div>
+      </body>
+    </html>
+  );
 }
