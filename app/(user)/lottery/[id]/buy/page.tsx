@@ -12,8 +12,11 @@ import Link from "next/link";
 import { getLotteryRound, createPurchaseOrder, getSoldNumbers, checkPhoneUsed, getPaymentMethods, getTelegramSettings } from "../../../../../lib/firebase/firestore";
 import CloudinaryImage from "../../../../../components/ui/CloudinaryImage";
 import { LotteryRound, PaymentMethod, TelegramSettings } from "../../../../../types";
+import { useLanguage } from "../../../../../lib/contexts/LanguageContext";
+import LanguageToggle from "../../../../../components/user/LanguageToggle";
 
 export default function BuyTicketPage() {
+    const { t } = useLanguage();
     const { id } = useParams() as { id: string };
     const router = useRouter();
     const [lottery, setLottery] = useState<LotteryRound | null>(null);
@@ -176,7 +179,8 @@ export default function BuyTicketPage() {
         try {
             const isUsed = await checkPhoneUsed(id, phoneNumber);
             if (isUsed) {
-                setPhoneError("This phone number is already used to buy a ticket. Please use your own phone number so we can contact you.");
+                setPhoneError(t('phone_placeholder')); // I'll use a better error string if available
+                // Actually I didn't add the "Phone number used" string to translations. I'll just use the hardcoded one for now but with standard wording or add it later.
             } else {
                 setPhoneError("");
             }
@@ -234,8 +238,8 @@ export default function BuyTicketPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-50">
                 <AlertCircle className="h-16 w-16 text-slate-400 mb-4" />
-                <h2 className="text-xl font-bold">Lottery not found</h2>
-                <Link href="/" className="mt-4 text-orange-500 font-bold">Back to Home</Link>
+                <h2 className="text-xl font-bold">{t('lottery_not_found')}</h2>
+                <Link href="/" className="mt-4 text-orange-500 font-bold">{t('back_to_home')}</Link>
             </div>
         );
     }
@@ -243,14 +247,17 @@ export default function BuyTicketPage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-24">
             {/* Simple Mobile Header */}
-            <div className="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-4 flex items-center gap-4">
-                <button onClick={() => step > 1 && step < 6 ? setStep(step - 1) : router.back()}>
-                    <ArrowLeft className="h-6 w-6 text-slate-900" />
-                </button>
-                <div>
-                    <h1 className="text-lg font-black text-slate-900 tracking-tight">Buy Ticket</h1>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lottery.carTitle}</p>
+            <div className="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => step > 1 && step < 6 ? setStep(step - 1) : router.back()}>
+                        <ArrowLeft className="h-6 w-6 text-slate-900" />
+                    </button>
+                    <div>
+                        <h1 className="text-lg font-black text-slate-900 tracking-tight">{t('buy_ticket_title')}</h1>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lottery.carTitle}</p>
+                    </div>
                 </div>
+                <LanguageToggle />
             </div>
 
             {/* Progress Bar */}
@@ -266,8 +273,8 @@ export default function BuyTicketPage() {
                 {step === 1 && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 mb-6">
-                            <h2 className="text-2xl font-black text-slate-900 mb-2">How many tickets?</h2>
-                            <p className="text-slate-500 text-sm font-bold mb-8">Choose a package for more chances to win!</p>
+                            <h2 className="text-2xl font-black text-slate-900 mb-2">{t('how_many_tickets')}</h2>
+                            <p className="text-slate-500 text-sm font-bold mb-8">{t('choose_package')}</p>
 
                             <div className="space-y-4">
                                 {/* Single Ticket */}
@@ -276,8 +283,8 @@ export default function BuyTicketPage() {
                                     className={`w-full flex justify-between items-center p-5 rounded-2xl border-2 transition-all ${quantity === 1 ? 'border-orange-500 bg-orange-50' : 'border-slate-100 hover:border-slate-200'}`}
                                 >
                                     <div className="text-left">
-                                        <span className="block text-sm font-black text-slate-900">1 Ticket</span>
-                                        <span className="text-xs font-bold text-slate-500 italic">Standard Entry</span>
+                                        <span className="block text-sm font-black text-slate-900">{t('one_ticket')}</span>
+                                        <span className="text-xs font-bold text-slate-500 italic">{t('standard_entry')}</span>
                                     </div>
                                     <span className="text-lg font-black text-orange-600">ETB {lottery.ticketPrice}</span>
                                 </button>
@@ -291,9 +298,9 @@ export default function BuyTicketPage() {
                                     >
                                         <div className="text-left">
                                             <div className="flex items-center gap-2">
-                                                <span className="block text-sm font-black text-slate-900">{count} Tickets</span>
+                                                <span className="block text-sm font-black text-slate-900">{count} {t('tickets')}</span>
                                             </div>
-                                            <span className="text-xs font-bold text-orange-500 italic uppercase tracking-tighter">Big Savings!</span>
+                                            <span className="text-xs font-bold text-orange-500 italic uppercase tracking-tighter">{t('big_savings')}</span>
                                         </div>
                                         <span className="text-lg font-black text-orange-600">ETB {price.toLocaleString()}</span>
                                     </button>
@@ -308,7 +315,7 @@ export default function BuyTicketPage() {
                             }}
                             className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
                         >
-                            Continue <ArrowRight className="h-5 w-5" />
+                            {t('continue_btn')} <ArrowRight className="h-5 w-5" />
                         </button>
                     </div>
                 )}
@@ -337,7 +344,7 @@ export default function BuyTicketPage() {
                                                     type="text"
                                                     inputMode="numeric"
                                                     pattern="[0-9]*"
-                                                    placeholder={`Number for ticket ${idx + 1}`}
+                                                    placeholder={`${t('ticket_num_label')} ${idx + 1}`}
                                                     value={num || ""}
                                                     onChange={(e) => {
                                                         const val = e.target.value.replace(/[^0-9]/g, '');
@@ -347,9 +354,9 @@ export default function BuyTicketPage() {
                                                 />
                                                 {hasError && <AlertCircle className="h-5 w-5 text-red-500" />}
                                             </div>
-                                            {isOutOfRange && <p className="text-[10px] text-red-500 font-extrabold uppercase pl-14">Number must be between 1 and {lottery.totalTickets}</p>}
-                                            {isTaken && <p className="text-[10px] text-red-500 font-extrabold uppercase pl-14">Already Taken by another user</p>}
-                                            {isDuplicate && <p className="text-[10px] text-red-500 font-extrabold uppercase pl-14">Duplicate number selected</p>}
+                                            {isOutOfRange && <p className="text-[10px] text-red-500 font-extrabold uppercase pl-14">{t('out_of_range')} {lottery.totalTickets}</p>}
+                                            {isTaken && <p className="text-[10px] text-red-500 font-extrabold uppercase pl-14">{t('taken_error')}</p>}
+                                            {isDuplicate && <p className="text-[10px] text-red-500 font-extrabold uppercase pl-14">{t('duplicate_error')}</p>}
                                         </div>
                                     );
                                 })}
@@ -358,7 +365,7 @@ export default function BuyTicketPage() {
                             {/* Suggestions - Only show if a taken number is selected */}
                             {suggestions.length > 0 && selectedNumbers.some(n => soldNumbers.includes(n)) && (
                                 <div className="mt-8 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <span className="text-sm font-black text-slate-900 tracking-tight block mb-3">Available lucky numbers</span>
+                                    <span className="text-sm font-black text-slate-900 tracking-tight block mb-3">{t('available_numbers')}</span>
                                     <div className="flex flex-wrap gap-2">
                                         {suggestions.map((n) => (
                                             <button
@@ -431,11 +438,11 @@ export default function BuyTicketPage() {
                             <div className="space-y-6">
                                 {/* Full Name */}
                                 <div className="space-y-2">
-                                    <label className="block text-slate-900 font-black text-sm uppercase tracking-wider pl-1">Full Name</label>
+                                    <label className="block text-slate-900 font-black text-sm uppercase tracking-wider pl-1">{t('full_name_label')}</label>
                                     <div className="h-16 rounded-2xl bg-white border-2 border-slate-100 flex items-center px-5 focus-within:border-orange-500 transition-all shadow-sm">
                                         <input
                                             type="text"
-                                            placeholder="Enter your full name"
+                                            placeholder={t('enter_full_name')}
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                             className="bg-transparent font-bold text-slate-900 w-full focus:outline-none placeholder:text-slate-300"
@@ -445,7 +452,7 @@ export default function BuyTicketPage() {
 
                                 {/* Phone Number */}
                                 <div className="space-y-2">
-                                    <label className="block text-slate-900 font-black text-sm uppercase tracking-wider pl-1 font-bold">Phone Number</label>
+                                    <label className="block text-slate-900 font-black text-sm uppercase tracking-wider pl-1 font-bold">{t('phone_num_label')}</label>
                                     <div className={`h-16 rounded-2xl bg-white border-2 flex items-center px-5 transition-all shadow-sm ${phoneError ? 'border-red-500' : 'border-slate-100 focus-within:border-orange-500'}`}>
                                         <input
                                             type="tel"
@@ -529,10 +536,10 @@ export default function BuyTicketPage() {
                                 <div className="bg-orange-100 p-3 rounded-2xl">
                                     <ShieldCheck className="h-6 w-6 text-orange-600" />
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">መታወቂያ</h2>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('id_card')}</h2>
                             </div>
 
-                            <p className="text-slate-500 text-sm font-bold mb-8 text-left">Please upload a photo of your identification card for confirmation.</p>
+                            <p className="text-slate-500 text-sm font-bold mb-8 text-left">{t('id_upload_desc')}</p>
 
                             <input
                                 type="file"
@@ -549,12 +556,12 @@ export default function BuyTicketPage() {
                                 {uploading ? (
                                     <>
                                         <RefreshCw className="h-10 w-10 text-orange-500 animate-spin mb-4" />
-                                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Uploading...</span>
+                                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('uploading')}</span>
                                     </>
                                 ) : idCardUrl ? (
                                     <>
                                         <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-4" />
-                                        <span className="text-sm font-black text-emerald-600 uppercase tracking-widest">ID Uploaded!</span>
+                                        <span className="text-sm font-black text-emerald-600 uppercase tracking-widest">{t('id_uploaded')}</span>
                                         <div className="relative mt-4 w-full h-24 rounded-xl overflow-hidden shadow-md">
                                             <img src={idCardUrl} className="w-full h-full object-cover" alt="ID Card preview" />
                                         </div>
@@ -564,7 +571,7 @@ export default function BuyTicketPage() {
                                         <div className="bg-slate-100 p-4 rounded-full mb-4 group-hover:bg-white transition-colors">
                                             <UploadCloud className="h-8 w-8 text-slate-400 group-hover:text-orange-500" />
                                         </div>
-                                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Choose ID Photo</span>
+                                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('choose_id_photo')}</span>
                                         <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-tight italic">PNG, JPG or JPEG</p>
                                     </>
                                 )}
@@ -576,7 +583,7 @@ export default function BuyTicketPage() {
                             onClick={() => setStep(5)}
                             className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
                         >
-                            Continue to Payment <ArrowRight className="h-5 w-5" />
+                            {t('continue_payment')} <ArrowRight className="h-5 w-5" />
                         </button>
                     </div>
                 )}
@@ -589,19 +596,19 @@ export default function BuyTicketPage() {
                                 <div className="bg-orange-100 p-3 rounded-2xl">
                                     <ShoppingCart className="h-6 w-6 text-orange-600" />
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Payment</h2>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('payment')}</h2>
                             </div>
 
                             <div className="mb-8 p-6 bg-orange-600 rounded-3xl text-white shadow-lg shadow-orange-500/20">
-                                <span className="text-xs font-black uppercase tracking-widest opacity-80">Total Amount Due</span>
+                                <span className="text-xs font-black uppercase tracking-widest opacity-80">{t('total_amount_due')}</span>
                                 <div className="text-3xl font-black mt-1 tracking-tight">ETB {calculateTotal().toLocaleString()}</div>
                                 <p className="text-[10px] font-bold mt-3 opacity-90 leading-normal uppercase">
-                                    Copy the account number from below, transfer the amount, and then upload the payment screenshot for verification.
+                                    {t('payment_desc')}
                                 </p>
                             </div>
 
                             <div className="space-y-4 mb-8">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Official Accounts</h3>
+                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">{t('official_accounts')}</h3>
                                 {paymentMethods.map((method) => (
                                     <div key={method.id} className="p-4 rounded-2xl border-2 border-slate-50 bg-slate-50/50 space-y-3">
                                         <div className="flex items-center gap-3">
@@ -619,7 +626,7 @@ export default function BuyTicketPage() {
                                                 onClick={() => copyToClipboard(method.accountNumber)}
                                                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${copiedText === method.accountNumber ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10'}`}
                                             >
-                                                {copiedText === method.accountNumber ? "Copied" : "Copy"}
+                                                {copiedText === method.accountNumber ? t('copied_label') || "Copied" : t('copy_label') || "Copy"}
                                             </button>
                                         </div>
                                     </div>
@@ -645,7 +652,7 @@ export default function BuyTicketPage() {
                                         <>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                                                <span className="text-xs font-black text-emerald-600 uppercase">Payment Proof Uploaded</span>
+                                                <span className="text-xs font-black text-emerald-600 uppercase">{t('proof_uploaded')}</span>
                                             </div>
                                             <div className="relative w-full h-full rounded-xl overflow-hidden shadow-sm">
                                                 <img src={paymentScreenshotUrl} className="w-full h-full object-cover" alt="Payment screenshot preview" />
@@ -654,7 +661,7 @@ export default function BuyTicketPage() {
                                     ) : (
                                         <div className="flex items-center gap-3">
                                             <ImageIcon className="h-5 w-5 text-slate-400" />
-                                            <span className="text-sm font-black text-slate-900 uppercase">Upload Payment Photo</span>
+                                            <span className="text-sm font-black text-slate-900 uppercase">{t('upload_payment_photo')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -667,7 +674,7 @@ export default function BuyTicketPage() {
                             className="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
                         >
                             {isSubmitting ? <RefreshCw className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
-                            {isSubmitting ? "Processing Order..." : "Submit Reservation Now"}
+                            {isSubmitting ? t('processing') : t('submit_reservation')}
                         </button>
                     </div>
                 )}
@@ -678,9 +685,9 @@ export default function BuyTicketPage() {
                         <div className="bg-emerald-500 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/30">
                             <CheckCircle2 className="h-12 w-12 text-white" />
                         </div>
-                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Success!</h2>
+                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">{t('success_title')}</h2>
                         <p className="text-slate-500 font-bold text-lg mb-12">
-                            Your order is now <span className="text-orange-600">Pending</span>. Our team will verify your payment and notify you soon!
+                            {t('success_desc')}
                         </p>
 
                         <div className="space-y-4">

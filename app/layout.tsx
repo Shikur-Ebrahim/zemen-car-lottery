@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LanguageProvider } from "../lib/contexts/LanguageContext";
 
 export const metadata: Metadata = {
   title: "ዘመን የመኪና እጣ | Zemen Car Lottery",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-950 flex flex-col font-sans">
-        <div className="flex-1 w-full flex flex-col">{children}</div>
+        <LanguageProvider>
+          <div className="flex-1 w-full flex flex-col">{children}</div>
+        </LanguageProvider>
       </body>
     </html>
   );

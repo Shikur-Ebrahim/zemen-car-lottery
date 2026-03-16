@@ -1,47 +1,61 @@
-import { Car, Ticket, Send, User, MessageCircle, ArrowLeft, Trophy, Calendar, CheckCircle2, Info, ShoppingCart, Phone } from "lucide-react";
+"use client";
+
+import { Car, Ticket, Send, User, MessageCircle, ArrowLeft, Trophy, Calendar, CheckCircle2, Info, ShoppingCart, Phone, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { getLotteryRound, getTelegramSettings } from "../../../../lib/firebase/firestore";
 import CloudinaryImage from "../../../../components/ui/CloudinaryImage";
 import CopyablePhone from "../../../../components/user/CopyablePhone";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import PurchaseAction from "../../../../components/user/PurchaseAction";
+import { useEffect, useState } from "react";
+import { LotteryRound, TelegramSettings } from "../../../../types";
+import { useLanguage } from "../../../../lib/contexts/LanguageContext";
+import UserHeader from "../../../../components/user/UserHeader";
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export default function LotteryDetailsPage() {
+    const { id } = useParams() as { id: string };
+    const { t } = useLanguage();
+    const [lottery, setLottery] = useState<LotteryRound | null>(null);
+    const [telegram, setTelegram] = useState<TelegramSettings | null>(null);
+    const [loading, setLoading] = useState(true);
 
-interface Props {
-    params: {
-        id: string;
+    useEffect(() => {
+        const fetchData = async () => {
+            const lData = await getLotteryRound(id);
+            const tData = await getTelegramSettings();
+            setLottery(lData);
+            setTelegram(tData);
+            setLoading(false);
+        };
+        fetchData();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <RefreshCw className="h-10 w-10 text-orange-500 animate-spin" />
+            </div>
+        );
     }
-}
-
-export default async function LotteryDetailsPage({ params }: Props) {
-    const { id } = await params;
-    const lottery = await getLotteryRound(id);
-    const telegram = await getTelegramSettings();
 
     if (!lottery) {
         notFound();
     }
 
     const isClosed = new Date(lottery.drawDate).getTime() <= Date.now() || lottery.status === 'completed';
-    const progress = Math.min(100, Math.round((lottery.soldTickets / lottery.totalTickets) * 100));
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-24">
-            {/* Top Navigation */}
-            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-                <div className="mx-auto max-w-7xl px-4 py-4 md:px-8 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors font-bold text-sm group">
-                        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                        Back to Home
-                    </Link>
-                    <div className="flex items-center gap-2">
-                    </div>
-                </div>
-            </header>
+            <UserHeader />
 
             <main className="mx-auto max-w-7xl px-4 pt-8 md:px-8 lg:px-12">
+                <div className="mb-6">
+                    <Link href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors font-bold text-sm group">
+                        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        {t('back_to_home')}
+                    </Link>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
                     {/* Media Section */}
@@ -75,7 +89,7 @@ export default async function LotteryDetailsPage({ params }: Props) {
                             {isClosed && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
                                     <div className="bg-white text-slate-900 px-8 py-4 rounded-2xl shadow-2xl border border-slate-100">
-                                        <span className="text-3xl font-black uppercase tracking-tight">Round Closed</span>
+                                        <span className="text-3xl font-black uppercase tracking-tight">{t('round_closed')}</span>
                                     </div>
                                 </div>
                             )}
@@ -90,10 +104,10 @@ export default async function LotteryDetailsPage({ params }: Props) {
                         <div className="mb-10">
                             <div className="mb-6">
                                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-2">
-                                    <Ticket className="h-4 w-4 text-orange-500" /> Choose Your Tickets
+                                    <Ticket className="h-4 w-4 text-orange-500" /> {t('choose_your_tickets')}
                                 </h3>
                                 <p className="text-xs text-slate-500 font-bold leading-relaxed pr-8">
-                                    You can buy more than one ticket to increase your chances! Pick any amount from the list below. There is no limit.
+                                    {t('buy_more')}
                                 </p>
                             </div>
 
@@ -102,8 +116,8 @@ export default async function LotteryDetailsPage({ params }: Props) {
                                     {/* Standard Option (1 Ticket) */}
                                     <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                         <div className="flex flex-col">
-                                            <span className="text-lg font-black text-slate-900">1 Ticket</span>
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Entry level</span>
+                                            <span className="text-lg font-black text-slate-900">{t('one_ticket')}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('entry_level')}</span>
                                         </div>
                                         <div className="text-xl font-black text-orange-600">
                                             ETB {lottery.ticketPrice}
@@ -115,10 +129,10 @@ export default async function LotteryDetailsPage({ params }: Props) {
                                         <div key={count} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors bg-orange-50/20">
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-lg font-black text-slate-900">{count} Tickets</span>
-                                                    <span className="bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase">BEST VALUE</span>
+                                                    <span className="text-lg font-black text-slate-900">{count} {t('tickets')}</span>
+                                                    <span className="bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase">{t('best_value')}</span>
                                                 </div>
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Savings included</span>
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('savings_included')}</span>
                                             </div>
                                             <div className="text-xl font-black text-orange-600">
                                                 ETB {price.toLocaleString()}
@@ -132,7 +146,7 @@ export default async function LotteryDetailsPage({ params }: Props) {
                         {/* Telegram & Contact Info */}
                         <div className="mt-auto space-y-4">
                             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                <MessageCircle className="h-4 w-4 text-orange-500" /> For more information
+                                <MessageCircle className="h-4 w-4 text-orange-500" /> {t('for_more_info')}
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {telegram?.channelLink && (
@@ -146,8 +160,8 @@ export default async function LotteryDetailsPage({ params }: Props) {
                                             <Send className="h-5 w-5" />
                                         </div>
                                         <div>
-                                            <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Channel</div>
-                                            <div className="text-xs font-bold text-slate-900">Join Community</div>
+                                            <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('channel')}</div>
+                                            <div className="text-xs font-bold text-slate-900">{t('join_community')}</div>
                                         </div>
                                     </a>
                                 )}
@@ -162,8 +176,8 @@ export default async function LotteryDetailsPage({ params }: Props) {
                                             <User className="h-5 w-5" />
                                         </div>
                                         <div>
-                                            <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Support</div>
-                                            <div className="text-xs font-bold text-slate-900">Chat with us</div>
+                                            <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{t('support')}</div>
+                                            <div className="text-xs font-bold text-slate-900">{t('chat_with_us')}</div>
                                         </div>
                                     </a>
                                 )}
@@ -177,7 +191,7 @@ export default async function LotteryDetailsPage({ params }: Props) {
                         <div className="mt-10 hidden md:block">
                             <PurchaseAction
                                 isClosed={isClosed}
-                                buttonText="Ready to Win? Buy Ticket"
+                                buttonText={t('ready_to_win')}
                                 lotteryId={lottery.id}
                                 ticketPrice={lottery.ticketPrice}
                                 bundlePrices={lottery.bundlePrices}
@@ -193,7 +207,7 @@ export default async function LotteryDetailsPage({ params }: Props) {
                     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:hidden bg-white/80 backdrop-blur-lg border-t border-slate-100">
                         <PurchaseAction
                             isClosed={isClosed}
-                            buttonText="Buy ticket now"
+                            buttonText={t('buy_ticket_btn')}
                             lotteryId={lottery.id}
                             ticketPrice={lottery.ticketPrice}
                             bundlePrices={lottery.bundlePrices}

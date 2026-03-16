@@ -30,6 +30,7 @@ export type LotteryRound = {
     };
     startDate: Date;
     drawDate: Date;
+    initialSoldPercent?: number;
     status: 'draft' | 'active' | 'completed' | 'cancelled';
     winnerId?: string;
     winnerTicketNumber?: string;

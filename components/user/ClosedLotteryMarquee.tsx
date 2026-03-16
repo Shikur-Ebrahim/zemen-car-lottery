@@ -2,12 +2,14 @@
 
 import { LotteryRound } from "../../types";
 import CloudinaryImage from "../ui/CloudinaryImage";
+import { useLanguage } from "../../lib/contexts/LanguageContext";
 
 interface Props {
     lotteries: LotteryRound[];
 }
 
 export default function ClosedLotteryMarquee({ lotteries }: Props) {
+    const { t } = useLanguage();
     if (!lotteries || lotteries.length === 0) return null;
 
     // Duplicate list to ensure seamless infinite scroll
@@ -18,7 +20,7 @@ export default function ClosedLotteryMarquee({ lotteries }: Props) {
             <div className="mx-auto max-w-7xl px-4 mb-8">
                 <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
                     <span className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></span>
-                    Recently closed lotteries
+                    {t('recently_closed')}
                 </h3>
             </div>
 
@@ -40,12 +42,12 @@ export default function ClosedLotteryMarquee({ lotteries }: Props) {
                                     {/* Closed Banner */}
                                     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                                         <div className="bg-slate-900/80 text-white py-2 px-8 transform -rotate-12 border-y border-slate-700 shadow-xl">
-                                            <span className="text-xl sm:text-2xl font-black tracking-[0.1em]">Closed</span>
+                                            <span className="text-xl sm:text-2xl font-black tracking-[0.1em]">{t('closed')}</span>
                                         </div>
                                     </div>
                                     {/* Text Info Overlay */}
                                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 to-transparent translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                                        <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest leading-none mb-1">Lottery Round Results</p>
+                                        <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest leading-none mb-1">{t('round_results')}</p>
                                         <h4 className="text-white font-bold text-sm sm:text-base leading-tight truncate">{lottery.carTitle}</h4>
                                     </div>
                                 </>

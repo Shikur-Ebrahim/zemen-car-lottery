@@ -40,7 +40,7 @@ export const getPaymentMethods = async (): Promise<PaymentMethod[]> => {
  * Creates a single LotteryRound record with all embedded car metadata.
  */
 export const addLotteryRound = async (
-   lotteryData: Omit<LotteryRound, 'id' | 'status' | 'soldTickets' | 'startDate'>
+   lotteryData: Omit<LotteryRound, 'id' | 'status' | 'soldTickets' | 'startDate' | 'initialSoldPercent'> & { initialSoldPercent?: number }
 ) => {
    try {
       const roundRef = doc(collection(db, "lottery_rounds"));
@@ -60,6 +60,56 @@ export const addLotteryRound = async (
       return { roundId: roundRef.id };
    } catch (error) {
       console.error("Error adding lottery round:", error);
+      throw error;
+   }
+};
+
+/**
+ * Fetches all lottery rounds from the collection.
+ */
+export const getAllLotteryRounds = async (): Promise<LotteryRound[]> => {
+   try {
+      const lotteriesRef = collection(db, "lottery_rounds");
+      const q = query(lotteriesRef, orderBy("startDate", "desc"));
+      const querySnapshot = await getDocs(q);
+      const host: LotteryRound[] = [];
+
+      querySnapshot.forEach((doc) => {
+         const data = doc.data();
+         const startDate = data.startDate?.toDate ? data.startDate.toDate() : (data.startDate instanceof Date ? data.startDate : null);
+         const drawDate = data.drawDate?.toDate ? data.drawDate.toDate() : (data.drawDate instanceof Date ? data.drawDate : null);
+
+         host.push({
+            ...data,
+            id: doc.id,
+            startDate,
+            drawDate
+         } as LotteryRound);
+      });
+
+      return host;
+   } catch (error) {
+      console.error("Error fetching all lottery rounds:", error);
+      return [];
+   }
+};
+
+/**
+ * Updates an existing lottery round.
+ */
+export const updateLotteryRound = async (id: string, updates: Partial<LotteryRound>) => {
+   try {
+      const roundRef = doc(db, "lottery_rounds", id);
+      
+      // Ensure dates are handled if they are in the updates
+      const dataToUpdate = { ...updates };
+      if (updates.startDate) dataToUpdate.startDate = new Date(updates.startDate);
+      if (updates.drawDate) dataToUpdate.drawDate = new Date(updates.drawDate);
+
+      await setDoc(roundRef, dataToUpdate, { merge: true });
+      return { success: true };
+   } catch (error) {
+      console.error("Error updating lottery round:", error);
       throw error;
    }
 };
@@ -240,6 +290,88 @@ export const createPurchaseOrder = async (orderData: Omit<PurchaseOrder, "id" | 
       return { orderId: orderRef.id };
    } catch (error) {
       console.error("Error creating purchase order:", error);
+      throw error;
+   }
+};
+
+/**
+ * Fetches all purchase orders from the ticket_purchases collection.
+ */
+export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
+   try {
+      const ordersRef = collection(db, "ticket_purchases");
+      const q = query(ordersRef, orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      const orders: PurchaseOrder[] = [];
+
+      querySnapshot.forEach((doc) => {
+         const data = doc.data();
+         orders.push({
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt instanceof Date ? data.createdAt : new Date())
+         } as PurchaseOrder);
+      });
+
+      return orders;
+   } catch (error) {
+      console.error("Error fetching all purchase orders:", error);
+      return [];
+   }
+};
+
+/**
+ * Fetches all purchase orders associated with a specific phone number.
+ */
+export const getPurchasesByPhone = async (phoneNumber: string): Promise<PurchaseOrder[]> => {
+   try {
+      const ordersRef = collection(db, "ticket_purchases");
+      // Use a simple query to avoid requiring a composite index
+      const q = query(ordersRef, where("phoneNumber", "==", phoneNumber));
+      const querySnapshot = await getDocs(q);
+      const orders: PurchaseOrder[] = [];
+
+      querySnapshot.forEach((doc) => {
+         const data = doc.data();
+         orders.push({
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt instanceof Date ? data.createdAt : new Date())
+         } as PurchaseOrder);
+      });
+
+      // Sort by date descending on the client side
+      return orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+   } catch (error) {
+      console.error("Error fetching purchases by phone:", error);
+      return [];
+   }
+};
+
+/**
+ * Updates the status of a purchase order.
+ */
+export const updatePurchaseStatus = async (orderId: string, status: 'approved' | 'rejected' | 'pending') => {
+   try {
+      const orderRef = doc(db, "ticket_purchases", orderId);
+      await setDoc(orderRef, { status }, { merge: true });
+      return { success: true };
+   } catch (error) {
+      console.error("Error updating purchase status:", error);
+      throw error;
+   }
+};
+
+/**
+ * Deletes a purchase order from the collection.
+ */
+export const deletePurchaseOrder = async (orderId: string) => {
+   try {
+      const orderRef = doc(db, "ticket_purchases", orderId);
+      await deleteDoc(orderRef);
+      return { success: true };
+   } catch (error) {
+      console.error("Error deleting purchase order:", error);
       throw error;
    }
 };

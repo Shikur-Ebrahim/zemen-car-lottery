@@ -5,14 +5,17 @@ import { useEffect, useState } from "react";
 import CloudinaryImage from "../ui/CloudinaryImage";
 import { Info, PartyPopper } from "lucide-react";
 import { LotteryRound } from "../../types";
+import { getSalesProgress } from "../../lib/utils/lotteryUtils";
 import PurchaseAction from "./PurchaseAction";
+import { useLanguage } from "../../lib/contexts/LanguageContext";
 
 interface Props {
     lottery: LotteryRound;
 }
 
 export default function CarLotteryCard({ lottery }: Props) {
-    const [timeLeft, setTimeLeft] = useState({
+    const { t } = useLanguage();
+    const [timeLeft, setTimeLeft ] = useState({
         days: 0,
         hours: 0,
         minutes: 0,
@@ -42,7 +45,7 @@ export default function CarLotteryCard({ lottery }: Props) {
         return () => clearInterval(timer);
     }, [lottery.drawDate]);
 
-    const progress = Math.min(100, Math.round((lottery.soldTickets / lottery.totalTickets) * 100));
+    const progress = getSalesProgress(lottery);
     const isClosed = new Date(lottery.drawDate).getTime() <= new Date().getTime() || lottery.status === 'completed';
 
     return (
@@ -92,7 +95,7 @@ export default function CarLotteryCard({ lottery }: Props) {
                     <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none overflow-hidden">
                         <div className="bg-slate-900/90 text-white py-4 w-[150%] transform -rotate-25 shadow-2xl border-y-2 border-slate-700 flex items-center justify-center">
                             <span className="text-4xl sm:text-6xl font-black tracking-[0.2em] drop-shadow-2xl">
-                                Closed
+                                {t('closed')}
                             </span>
                         </div>
                     </div>
@@ -101,7 +104,7 @@ export default function CarLotteryCard({ lottery }: Props) {
                 {/* Ticket Price Ribbon - Sharp box style */}
                 <div className="absolute top-0 right-0 z-30">
                     <div className="bg-red-700 text-white p-4 shadow-2xl flex flex-col items-center justify-center min-w-[130px] border-b-2 border-l-2 border-red-900">
-                        <span className="text-[10px] font-black tracking-widest leading-none mb-1 text-red-200">1 Ticket Price</span>
+                        <span className="text-[10px] font-black tracking-widest leading-none mb-1 text-red-200">{t('ticket_price_label')}</span>
                         <span className="text-2xl font-black leading-none drop-shadow-sm">ETB {lottery.ticketPrice}</span>
                     </div>
                 </div>
@@ -117,11 +120,11 @@ export default function CarLotteryCard({ lottery }: Props) {
                         {lottery.carTitle}
                     </h3>
                     <p className="text-slate-500 text-xs font-bold mt-2 tracking-widest bg-slate-100 px-4 py-1.5 inline-block border border-slate-200">
-                        Total tickets: {lottery.totalTickets.toLocaleString()}
+                        {t('total_tickets')}: {lottery.totalTickets.toLocaleString()}
                     </p>
                     {lottery.gameNumber && (
                         <div className="mt-2 flex flex-col items-center">
-                            <span className="text-blue-500 text-xs font-black tracking-tighter">Game: {lottery.gameNumber}</span>
+                            <span className="text-blue-500 text-xs font-black tracking-tighter">{t('game_label')}: {lottery.gameNumber}</span>
                             <div className="w-8 h-1 bg-red-500 mt-0.5 shadow-sm"></div>
                         </div>
                     )}
@@ -130,10 +133,10 @@ export default function CarLotteryCard({ lottery }: Props) {
                 {/* Countdown Timer - Sharp layout */}
                 <div className="grid grid-cols-4 gap-4 sm:gap-8 py-6 border-y border-slate-100 w-full mt-2">
                     {[
-                        { label: 'Days', value: timeLeft.days },
-                        { label: 'Hrs', value: timeLeft.hours },
-                        { label: 'Min', value: timeLeft.minutes },
-                        { label: 'Sec', value: timeLeft.seconds },
+                        { label: t('days'), value: timeLeft.days },
+                        { label: t('hrs'), value: timeLeft.hours },
+                        { label: t('min'), value: timeLeft.minutes },
+                        { label: t('sec'), value: timeLeft.seconds },
                     ].map((item, idx) => (
                         <div key={idx} className="flex flex-col items-center">
                             <span className="text-2xl sm:text-4xl font-black text-slate-900 tabular-nums leading-none">
@@ -147,7 +150,7 @@ export default function CarLotteryCard({ lottery }: Props) {
                 {/* Progress Bar - Sharp */}
                 <div className="w-full py-6">
                     <div className="flex justify-between items-center mb-2 px-1">
-                        <span className="text-[12px] font-black text-slate-900 tracking-wider">Sales progress</span>
+                        <span className="text-[12px] font-black text-slate-900 tracking-wider">{t('sales_progress')}</span>
                         <span className="text-[12px] font-black text-white bg-orange-600 px-2 py-0.5">{progress}%</span>
                     </div>
                     <div className="h-4 w-full bg-slate-200 shadow-inner">
@@ -164,11 +167,11 @@ export default function CarLotteryCard({ lottery }: Props) {
                         href={`/lottery/${lottery.id}`}
                         className="col-span-2 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-200 text-slate-900 font-black py-6 transition-colors text-xs tracking-widest border-r border-slate-200"
                     >
-                        <Info className="h-5 w-5" /> Info
+                        <Info className="h-5 w-5" /> {t('info_btn')}
                     </Link>
                     <PurchaseAction
                         isClosed={isClosed}
-                        buttonText="Buy ticket"
+                        buttonText={t('buy_ticket_btn')}
                         lotteryId={lottery.id}
                         ticketPrice={lottery.ticketPrice}
                         bundlePrices={lottery.bundlePrices}
